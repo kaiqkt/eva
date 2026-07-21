@@ -1,0 +1,2 @@
+# Detekt — sobrepõe o config default (buildUponDefaultConfig = true).
+# Só overrides ficam aqui; o resto herda os defaults do detekt.

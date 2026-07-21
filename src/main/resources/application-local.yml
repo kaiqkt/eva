@@ -1,0 +1,16 @@
+# Profile de desenvolvimento: ative com SPRING_PROFILES_ACTIVE=local
+# Usa H2 em memória no modo de compatibilidade PostgreSQL — sem precisar subir o docker-compose.
+spring:
+  datasource:
+    url: jdbc:h2:mem:eva;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    driver-class-name: org.h2.Driver
+    username: eva
+    password: eva
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+logging:
+  level:
+    dev.kaiqkt.eva: DEBUG
