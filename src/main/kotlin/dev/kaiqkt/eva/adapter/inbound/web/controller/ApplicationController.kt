@@ -23,7 +23,7 @@ class ApplicationController(
     ): ResponseEntity<ApplicationResponse> {
         val application = createApplicationUseCase.create(request.name, request.description)
         val response = ApplicationResponse.from(application)
-        val location = uriBuilder.path("/applications/{id}").buildAndExpand(response.id).toUri()
+        val location = uriBuilder.path("/applications/{slug}").buildAndExpand(response.slug).toUri()
         return ResponseEntity.created(location).body(response)
     }
 }

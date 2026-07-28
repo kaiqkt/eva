@@ -15,5 +15,130 @@ services:
       timeout: 5s
       retries: 5
 
+  forgejo-postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: forgejo
+      POSTGRES_USER: forgejo
+      POSTGRES_PASSWORD: forgejo
+    volumes:
+      - forgejo_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U forgejo"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  forgejo:
+    image: codeberg.org/forgejo/forgejo:10
+    environment:
+      USER_UID: "1000"
+      USER_GID: "1000"
+      FORGEJO__security__INSTALL_LOCK: "true"
+      FORGEJO__actions__ENABLED: "true"
+      FORGEJO__database__DB_TYPE: postgres
+      FORGEJO__database__HOST: forgejo-postgres:5432
+      FORGEJO__database__NAME: forgejo
+      FORGEJO__database__USER: forgejo
+      FORGEJO__database__PASSWD: forgejo
+      FORGEJO__server__ROOT_URL: http://localhost:3000
+      FORGEJO__server__HTTP_PORT: "3000"
+      FORGEJO__server__SSH_PORT: "2222"
+      FORGEJO__log__LEVEL: Warn
+    ports:
+      - "3000:3000"
+      - "2222:22"
+    volumes:
+      - forgejo_data:/data
+    depends_on:
+      forgejo-postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  forgejo-init:
+    image: codeberg.org/forgejo/forgejo:10
+    user: "1000:1000"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        forgejo admin user create \
+          --username $$FORGEJO_ADMIN_USER \
+          --password $$FORGEJO_ADMIN_PASSWORD \
+          --email $$FORGEJO_ADMIN_EMAIL \
+          --admin \
+          --must-change-password=false 2>/dev/null || true
+    environment:
+      FORGEJO_ADMIN_USER: eva
+      FORGEJO_ADMIN_PASSWORD: eva
+      FORGEJO_ADMIN_EMAIL: admin@eva.local
+      FORGEJO__database__DB_TYPE: postgres
+      FORGEJO__database__HOST: forgejo-postgres:5432
+      FORGEJO__database__NAME: forgejo
+      FORGEJO__database__USER: forgejo
+      FORGEJO__database__PASSWD: forgejo
+      FORGEJO__security__INSTALL_LOCK: "true"
+    volumes:
+      - forgejo_data:/data
+    depends_on:
+      forgejo:
+        condition: service_healthy
+    restart: "no"
+
+  forgejo-runner:
+    image: data.forgejo.org/forgejo/runner:12
+    user: "0:0"
+    working_dir: /data
+    volumes:
+      - forgejo_runner_data:/data
+      - ${DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        if [ ! -f /data/runner-config.yml ]; then
+          REG_TOKEN=$$(wget -qO- \
+            --header="Authorization: Basic $$(echo -n 'eva:eva' | base64 | tr -d '\n')" \
+            "http://forgejo:3000/api/v1/admin/runners/registration-token" | \
+            grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+          forgejo-runner register \
+            --no-interactive \
+            --instance "http://forgejo:3000" \
+            --token "$$REG_TOKEN" \
+            --name "eva-runner" \
+            --labels "docker:docker://node:20-bookworm"
+          UUID=$$(grep -o '"uuid": "[^"]*"' /data/.runner | cut -d'"' -f4)
+          TOKEN=$$(grep -o '"token": "[^"]*"' /data/.runner | cut -d'"' -f4)
+          cat > /data/runner-config.yml << EOF
+        log:
+          level: warn
+        container:
+          docker_host: "unix:///var/run/docker.sock"
+          network: "eva_default"
+          valid_volumes:
+            - "/var/run/docker.sock"
+        server:
+          connections:
+            eva:
+              url: http://forgejo:3000
+              uuid: $$UUID
+              token: $$TOKEN
+              labels:
+                - "docker:docker://node:20-bookworm"
+        EOF
+          rm -f /data/.runner
+        fi
+        exec forgejo-runner daemon --config /data/runner-config.yml
+    depends_on:
+      forgejo-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
 volumes:
   pgdata:
+  forgejo_postgres_data:
+  forgejo_data:
+  forgejo_runner_data:

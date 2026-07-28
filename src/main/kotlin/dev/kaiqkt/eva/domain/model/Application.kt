@@ -4,5 +4,5 @@ data class Application(
     val name: String,
     val slug: String,
     val description: String?,
-    val id: String? = null
+    val repository: Repository
 )
