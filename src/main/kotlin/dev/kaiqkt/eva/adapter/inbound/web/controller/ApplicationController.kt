@@ -21,7 +21,7 @@ class ApplicationController(
         @Valid @RequestBody request: ApplicationRequest,
         uriBuilder: UriComponentsBuilder,
     ): ResponseEntity<ApplicationResponse> {
-        val application = createApplicationUseCase.create(request.name, request.description)
+        val application = createApplicationUseCase.create(request.projectSlug, request.name, request.description)
         val response = ApplicationResponse.from(application)
         val location = uriBuilder.path("/applications/{slug}").buildAndExpand(response.slug).toUri()
         return ResponseEntity.created(location).body(response)

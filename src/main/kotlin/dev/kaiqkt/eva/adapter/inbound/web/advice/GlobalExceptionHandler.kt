@@ -1,6 +1,7 @@
 package dev.kaiqkt.eva.adapter.inbound.web.advice
 
-import dev.kaiqkt.eva.domain.exception.ApplicationAlreadyExistsException
+import dev.kaiqkt.eva.domain.exception.DomainException
+import dev.kaiqkt.eva.domain.exception.ErrorType
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -8,13 +9,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
-class ApplicationExceptionHandler {
+class GlobalExceptionHandler {
 
-    @ExceptionHandler(ApplicationAlreadyExistsException::class)
-    fun handleAlreadyExists(exception: ApplicationAlreadyExistsException): ProblemDetail =
+    @ExceptionHandler(DomainException::class)
+    fun handleDomain(exception: DomainException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(
-            HttpStatus.CONFLICT,
-            exception.message ?: "Application already exists",
+            exception.type.toHttpStatus(),
+            exception.message ?: "Unexpected error",
         )
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
@@ -28,5 +29,10 @@ class ApplicationExceptionHandler {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed").apply {
             setProperty("errors", errors)
         }
+    }
+
+    private fun ErrorType.toHttpStatus(): HttpStatus = when (this) {
+        ErrorType.ALREADY_EXISTS -> HttpStatus.CONFLICT
+        ErrorType.NOT_FOUND -> HttpStatus.NOT_FOUND
     }
 }

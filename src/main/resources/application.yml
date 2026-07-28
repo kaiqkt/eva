@@ -1,6 +1,8 @@
 spring:
   application:
     name: eva-server
+  jackson:
+    property-naming-strategy: SNAKE_CASE
   datasource:
     url: ${DATABASE_URL}
     username: ${DATABASE_USERNAME}

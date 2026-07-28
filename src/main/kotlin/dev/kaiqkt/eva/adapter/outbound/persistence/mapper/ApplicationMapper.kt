@@ -11,6 +11,7 @@ object ApplicationMapper {
             name = this.name,
             slug = this.slug,
             description = this.description,
+            projectId = this.projectId,
             repository = RepositoryEntity(
                 url = this.repository.url,
             ),
@@ -22,6 +23,7 @@ object ApplicationMapper {
             name = this.name,
             slug = this.slug,
             description = this.description,
+            projectId = this.projectId,
             repository = Repository(
                 url = this.repository.url,
             ),

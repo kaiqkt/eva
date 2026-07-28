@@ -7,9 +7,7 @@ import jakarta.validation.constraints.Size
 
 private const val NAME_MAX = 50
 
-data class ApplicationRequest(
-    @field:NotBlank
-    val projectSlug: String,
+data class ProjectRequest(
     @field:NotBlank
     @field:Size(max = NAME_MAX)
     @field:Pattern(regexp = "^[a-zA-Z0-9 ]+$")
