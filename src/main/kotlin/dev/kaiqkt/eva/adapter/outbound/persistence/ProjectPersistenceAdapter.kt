@@ -1,14 +1,14 @@
-package dev.kaiqkt.eva.adapter.outbound.persistence.adapter
+package dev.kaiqkt.eva.adapter.outbound.persistence
 
+import dev.kaiqkt.eva.adapter.outbound.persistence.jpa.ProjectJpaRepository
 import dev.kaiqkt.eva.adapter.outbound.persistence.mapper.ProjectMapper.toDomain
 import dev.kaiqkt.eva.adapter.outbound.persistence.mapper.ProjectMapper.toEntity
-import dev.kaiqkt.eva.adapter.outbound.persistence.repository.ProjectJpaRepository
 import dev.kaiqkt.eva.application.port.outbound.ProjectRepositoryPort
 import dev.kaiqkt.eva.domain.model.Project
 import org.springframework.stereotype.Component
 
 @Component
-class ProjectRepositoryAdapter(
+class ProjectPersistenceAdapter(
     private val projectJpaRepository: ProjectJpaRepository
 ) : ProjectRepositoryPort {
     override fun save(project: Project): Project {

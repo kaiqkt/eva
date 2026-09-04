@@ -5,5 +5,5 @@ data class Application(
     val slug: String,
     val description: String?,
     val projectId: String,
-    val repository: Repository
+    val repository: GitRepository
 )

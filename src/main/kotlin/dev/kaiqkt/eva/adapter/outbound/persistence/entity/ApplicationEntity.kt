@@ -19,7 +19,7 @@ class ApplicationEntity(
     val projectId: String = "",
     @OneToOne(cascade = [CascadeType.ALL], optional = false)
     @JoinColumn(name = "repository_id", nullable = false, unique = true)
-    val repository: RepositoryEntity = RepositoryEntity(),
+    val repository: GitRepositoryEntity = GitRepositoryEntity(),
     @Id
     val id: String = UlidCreator.getMonotonicUlid().toString()
 )

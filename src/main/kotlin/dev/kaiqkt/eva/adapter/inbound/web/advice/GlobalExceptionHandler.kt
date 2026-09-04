@@ -1,5 +1,6 @@
 package dev.kaiqkt.eva.adapter.inbound.web.advice
 
+import dev.kaiqkt.eva.application.port.outbound.CodeHostingException
 import dev.kaiqkt.eva.domain.exception.DomainException
 import dev.kaiqkt.eva.domain.exception.ErrorType
 import org.springframework.http.HttpStatus
@@ -16,6 +17,13 @@ class GlobalExceptionHandler {
         ProblemDetail.forStatusAndDetail(
             exception.type.toHttpStatus(),
             exception.message ?: "Unexpected error",
+        )
+
+    @ExceptionHandler(CodeHostingException::class)
+    fun handleCodeHosting(): ProblemDetail =
+        ProblemDetail.forStatusAndDetail(
+            HttpStatus.BAD_GATEWAY,
+            "Code hosting provider is unavailable",
         )
 
     @ExceptionHandler(MethodArgumentNotValidException::class)

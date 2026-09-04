@@ -8,13 +8,13 @@ import dev.kaiqkt.eva.domain.service.SlugGenerator
 import org.springframework.stereotype.Service
 
 @Service
-class CreateProjectService(
-    private val projectRepositoryPort: ProjectRepositoryPort
+class CreateProjectUseCaseImpl(
+    private val projectRepository: ProjectRepositoryPort
 ) : CreateProjectUseCase {
     override fun create(name: String, description: String?): Project {
         val slug = SlugGenerator.fromName(name)
 
-        if (projectRepositoryPort.existsBySlug(slug)) {
+        if (projectRepository.existsBySlug(slug)) {
             throw ResourceAlreadyExistsException("Project")
         }
 
@@ -24,6 +24,6 @@ class CreateProjectService(
             description = description
         )
 
-        return projectRepositoryPort.save(project)
+        return projectRepository.save(project)
     }
 }

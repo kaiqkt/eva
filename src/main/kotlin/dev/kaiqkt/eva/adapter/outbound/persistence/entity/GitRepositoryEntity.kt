@@ -7,7 +7,7 @@ import jakarta.persistence.Table
 
 @Entity
 @Table(name = "repositories")
-class RepositoryEntity(
+class GitRepositoryEntity(
     val url: String = "",
     @Id
     val id: String = UlidCreator.getMonotonicUlid().toString()

@@ -1,9 +1,9 @@
 package dev.kaiqkt.eva.adapter.outbound.persistence.mapper
 
 import dev.kaiqkt.eva.adapter.outbound.persistence.entity.ApplicationEntity
-import dev.kaiqkt.eva.adapter.outbound.persistence.entity.RepositoryEntity
+import dev.kaiqkt.eva.adapter.outbound.persistence.entity.GitRepositoryEntity
 import dev.kaiqkt.eva.domain.model.Application
-import dev.kaiqkt.eva.domain.model.Repository
+import dev.kaiqkt.eva.domain.model.GitRepository
 
 object ApplicationMapper {
     fun Application.toEntity(): ApplicationEntity {
@@ -12,7 +12,7 @@ object ApplicationMapper {
             slug = this.slug,
             description = this.description,
             projectId = this.projectId,
-            repository = RepositoryEntity(
+            repository = GitRepositoryEntity(
                 url = this.repository.url,
             ),
         )
@@ -24,7 +24,7 @@ object ApplicationMapper {
             slug = this.slug,
             description = this.description,
             projectId = this.projectId,
-            repository = Repository(
+            repository = GitRepository(
                 url = this.repository.url,
             ),
         )
