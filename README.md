@@ -27,8 +27,7 @@ dev.kaiqkt.eva
 ├── EvaApplication.kt              # main + @SpringBootApplication (component scan)
 │
 ├── domain/                        # núcleo puro
-│   ├── model/                     # entidades e value objects de negócio
-│   ├── service/                   # regras de domínio que não pertencem a um único modelo
+│   ├── model/                     # entidades, value objects e suas factories
 │   └── exception/                 # falhas de negócio (DomainException + ErrorType)
 │
 ├── application/                   # orquestração dos casos de uso
@@ -49,7 +48,7 @@ dev.kaiqkt.eva
         ├── persistence/
         │   ├── ProjectPersistenceAdapter.kt      # implementa ProjectRepositoryPort
         │   ├── ApplicationPersistenceAdapter.kt  # implementa ApplicationRepositoryPort
-        │   ├── entity/            # @Entity JPA
+        │   ├── entity/            # @Entity JPA (+ PersistableEntity)
         │   ├── mapper/            # entity <-> domain
         │   └── jpa/               # interfaces Spring Data (transporte)
         └── forgejo/
@@ -71,6 +70,21 @@ mapeamento de um campo pode ficar inline no adapter.
 **Nomes de porta descrevem a capacidade, não a tecnologia.** `CodeHostingPort`, não
 `GitPort`/`ForgejoPort` — trocar de forge não deve renomear a porta. O sufixo distingue
 a direção: outbound termina em `...Port`, inbound em `...UseCase`.
+
+**A regra vive no tipo, a orquestração no use case.** Se uma regra pode ser violada
+por um caller distraído, ela pertence ao domínio — `Slug` deriva e valida a si próprio,
+`Project.create`/`Application.create` geram o id e o slug. O use case só busca, decide o
+que fazer e salva. `SlugGenerator` como `object` estático não existe mais: era regra de
+negócio fora de qualquer tipo, e a assinatura `existsBySlug(String)` aceitava tanto o slug
+quanto o nome sem reclamar.
+
+**Uma porta inbound por operação, nomeada como frase verbal.** Se descrever a interface
+exige um "e", ela são duas (`GetBuildUseCase` + `ListBuildsUseCase`, não um `GetBuildUseCase`
+com `get` e `list`). O custo é o número de arquivos; a válvula de escape, quando doer, é
+manter porta só para comandos e deixar as queries irem do controller direto ao read service.
+A assimetria é intencional: portas outbound se pagam porque a infra de fato troca e os
+testes precisam de fake, enquanto uma porta inbound de leitura costuma ter um impl e um
+caller para sempre.
 
 **Nada específico de adapter atravessa o hexágono.** Um adapter outbound traduz sua
 exceção de transporte (ex: `ForgejoException`) para a exceção declarada junto da porta

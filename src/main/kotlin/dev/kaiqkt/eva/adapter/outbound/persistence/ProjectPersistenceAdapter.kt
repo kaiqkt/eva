@@ -5,6 +5,7 @@ import dev.kaiqkt.eva.adapter.outbound.persistence.mapper.ProjectMapper.toDomain
 import dev.kaiqkt.eva.adapter.outbound.persistence.mapper.ProjectMapper.toEntity
 import dev.kaiqkt.eva.application.port.outbound.ProjectRepositoryPort
 import dev.kaiqkt.eva.domain.model.Project
+import dev.kaiqkt.eva.domain.model.Slug
 import org.springframework.stereotype.Component
 
 @Component
@@ -15,11 +16,11 @@ class ProjectPersistenceAdapter(
         return projectJpaRepository.save(project.toEntity()).toDomain()
     }
 
-    override fun existsBySlug(slug: String): Boolean {
-        return projectJpaRepository.existsBySlug(slug)
+    override fun existsBySlug(slug: Slug): Boolean {
+        return projectJpaRepository.existsBySlug(slug.value)
     }
 
-    override fun findBySlug(slug: String): Project? {
-        return projectJpaRepository.findBySlug(slug)?.toDomain()
+    override fun findBySlug(slug: Slug): Project? {
+        return projectJpaRepository.findBySlug(slug.value)?.toDomain()
     }
 }

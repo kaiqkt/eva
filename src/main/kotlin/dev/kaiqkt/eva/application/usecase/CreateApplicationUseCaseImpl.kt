@@ -7,7 +7,7 @@ import dev.kaiqkt.eva.application.port.outbound.ProjectRepositoryPort
 import dev.kaiqkt.eva.domain.exception.ResourceAlreadyExistsException
 import dev.kaiqkt.eva.domain.exception.ResourceNotFoundException
 import dev.kaiqkt.eva.domain.model.Application
-import dev.kaiqkt.eva.domain.service.SlugGenerator
+import dev.kaiqkt.eva.domain.model.Slug
 import org.springframework.stereotype.Service
 
 @Service
@@ -17,10 +17,10 @@ class CreateApplicationUseCaseImpl(
     private val projectRepository: ProjectRepositoryPort
 ) : CreateApplicationUseCase {
     override fun create(projectSlug: String, name: String, description: String?): Application {
-        val project = projectRepository.findBySlug(projectSlug)
+        val project = projectRepository.findBySlug(Slug.of(projectSlug))
             ?: throw ResourceNotFoundException("Project")
 
-        val slug = SlugGenerator.fromName(name)
+        val slug = Slug.fromName(name)
 
         if (applicationRepository.existsBySlug(slug)) {
             throw ResourceAlreadyExistsException("Application")
@@ -28,14 +28,13 @@ class CreateApplicationUseCaseImpl(
 
         val repository = codeHosting.create(slug, description)
 
-        val application = Application(
-            name = name,
-            slug = slug,
-            description = description,
-            projectId = requireNotNull(project.id),
-            repository = repository
+        return applicationRepository.save(
+            Application.create(
+                name = name,
+                description = description,
+                projectId = project.id,
+                repository = repository
+            )
         )
-
-        return applicationRepository.save(application)
     }
 }

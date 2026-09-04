@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size
 data class ProjectRequest(
     @field:NotBlank
     @field:Size(max = RequestConstraints.NAME_MAX)
-    @field:Pattern(regexp = "^[a-zA-Z0-9 ]+$")
+    @field:Pattern(regexp = RequestConstraints.NAME_FORMAT)
     val name: String,
     @field:Size(max = RequestConstraints.DESCRIPTION_MAX)
     val description: String?

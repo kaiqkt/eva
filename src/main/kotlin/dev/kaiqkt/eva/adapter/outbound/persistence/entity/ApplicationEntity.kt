@@ -1,6 +1,5 @@
 package dev.kaiqkt.eva.adapter.outbound.persistence.entity
 
-import com.github.f4b6a3.ulid.UlidCreator
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -12,6 +11,8 @@ import jakarta.persistence.Table
 @Entity
 @Table(name = "applications")
 class ApplicationEntity(
+    @Id
+    private val id: String = "",
     val name: String = "",
     val slug: String = "",
     val description: String? = null,
@@ -19,7 +20,7 @@ class ApplicationEntity(
     val projectId: String = "",
     @OneToOne(cascade = [CascadeType.ALL], optional = false)
     @JoinColumn(name = "repository_id", nullable = false, unique = true)
-    val repository: GitRepositoryEntity = GitRepositoryEntity(),
-    @Id
-    val id: String = UlidCreator.getMonotonicUlid().toString()
-)
+    val repository: GitRepositoryEntity = GitRepositoryEntity()
+) : PersistableEntity() {
+    override fun getId(): String = id
+}

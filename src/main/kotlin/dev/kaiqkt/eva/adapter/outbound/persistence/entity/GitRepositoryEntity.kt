@@ -10,5 +10,7 @@ import jakarta.persistence.Table
 class GitRepositoryEntity(
     val url: String = "",
     @Id
-    val id: String = UlidCreator.getMonotonicUlid().toString()
-)
+    private val id: String = UlidCreator.getMonotonicUlid().toString()
+) : PersistableEntity() {
+    override fun getId(): String = id
+}

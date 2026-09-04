@@ -10,7 +10,7 @@ data class ApplicationResponse(
     companion object {
         fun from(application: Application) = ApplicationResponse(
             name = application.name,
-            slug = application.slug,
+            slug = application.slug.value,
             description = application.description,
         )
     }

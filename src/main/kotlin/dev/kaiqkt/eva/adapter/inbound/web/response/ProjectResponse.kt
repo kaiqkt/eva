@@ -10,7 +10,7 @@ data class ProjectResponse(
     companion object {
         fun from(project: Project) = ProjectResponse(
             name = project.name,
-            slug = project.slug,
+            slug = project.slug.value,
             description = project.description,
         )
     }

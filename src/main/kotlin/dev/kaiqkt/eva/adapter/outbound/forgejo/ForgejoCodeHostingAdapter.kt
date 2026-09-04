@@ -6,14 +6,15 @@ import dev.kaiqkt.eva.adapter.outbound.forgejo.client.request.CreateRepositoryRe
 import dev.kaiqkt.eva.application.port.outbound.CodeHostingException
 import dev.kaiqkt.eva.application.port.outbound.CodeHostingPort
 import dev.kaiqkt.eva.domain.model.GitRepository
+import dev.kaiqkt.eva.domain.model.Slug
 import org.springframework.stereotype.Component
 
 @Component
 class ForgejoCodeHostingAdapter(
     private val httpClient: ForgejoHttpClient
 ) : CodeHostingPort {
-    override fun create(slug: String, description: String?): GitRepository {
-        val request = CreateRepositoryRequest(name = slug, description = description)
+    override fun create(slug: Slug, description: String?): GitRepository {
+        val request = CreateRepositoryRequest(name = slug.value, description = description)
 
         val response = try {
             httpClient.createRepository(request)
