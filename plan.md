@@ -109,7 +109,8 @@ integração outbound copia a divisão `adapter/outbound/forgejo/{adapter,client
 ### 2. Ports da aplicação & casos de uso
 Inbound (`port/inbound/`):
 - `TriggerBuildUseCase` — `trigger(appSlug, ref?): Build`.
-- `GetBuildUseCase` — `get(appSlug, number): Build`, `list(appSlug): List<Build>`.
+- `GetBuildUseCase` — `get(appSlug, number): Build`.
+- `ListBuildsUseCase` — `list(appSlug): List<Build>`.
 - `ReportBuildStatusUseCase` — `report(ref, StatusUpdate)` (chamado pelo callback do CI).
 
 Outbound (`port/outbound/`):
