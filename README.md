@@ -7,6 +7,8 @@ Spring Boot (Kotlin) seguindo **Arquitetura Hexagonal (Ports & Adapters)**.
 O núcleo de negócio fica isolado — não conhece banco, HTTP ou fila. O mundo externo só fala com o núcleo através de **portas** (interfaces), e **adaptadores** implementam essas portas.
 
 - **Domínio / Core** — regras de negócio puras. Zero dependência de framework.
+  (Hoje `application/usecase` ainda usa `@Service` do Spring para registrar os beans —
+  concessão pragmática consciente; o `domain/` em si é livre de framework.)
 - **Portas (ports)** — interfaces. Contrato entre o núcleo e o mundo externo.
   - **Inbound / driving** — quem chama a aplicação (ex: `CreateXUseCase`). Ator externo → app.
   - **Outbound / driven** — quem a aplicação chama (ex: `XRepositoryPort`). App → infra.
@@ -26,43 +28,65 @@ dev.kaiqkt.eva
 │
 ├── domain/                        # núcleo puro
 │   ├── model/                     # entidades e value objects de negócio
-│   └── service/                   # regras de domínio que não pertencem a um único modelo
+│   ├── service/                   # regras de domínio que não pertencem a um único modelo
+│   └── exception/                 # falhas de negócio (DomainException + ErrorType)
 │
 ├── application/                   # orquestração dos casos de uso
 │   ├── port/
-│   │   ├── inbound/               # driving ports (interfaces) — Create/Find/Update/Delete...UseCase
-│   │   └── outbound/              # driven ports (interfaces) — ...RepositoryPort, ...ClientPort
-│   └── usecase/                   # implementa port.inbound, usa port.outbound — ...Service
+│   │   ├── inbound/               # driving ports — Create/Find/Update/Delete...UseCase
+│   │   └── outbound/              # driven ports — ...RepositoryPort, ...Port (+ suas exceções)
+│   └── usecase/                   # implementa port.inbound, usa port.outbound — ...UseCaseImpl
 │
 └── adapter/                       # tudo que toca o mundo externo
     ├── inbound/
     │   └── web/
     │       ├── controller/        # controllers REST (finos: validam entrada, delegam ao use case)
-    │       ├── request/           # DTOs de entrada (request bodies)
+    │       ├── request/           # DTOs de entrada + RequestConstraints (limites compartilhados)
     │       ├── response/          # DTOs de saída — domain nunca vaza pra borda
-    │       ├── advice/            # @RestControllerAdvice — traduz exceção de domínio em ProblemDetail
-    │       ├── support/           # helpers de parsing compartilhados
+    │       ├── advice/            # @RestControllerAdvice — traduz exceção em ProblemDetail
     │       └── config/            # OpenApiConfig (springdoc)
     └── outbound/
-        └── persistence/           # entity/mapper/repository JPA — implementa os RepositoryPort
+        ├── persistence/
+        │   ├── ProjectPersistenceAdapter.kt      # implementa ProjectRepositoryPort
+        │   ├── ApplicationPersistenceAdapter.kt  # implementa ApplicationRepositoryPort
+        │   ├── entity/            # @Entity JPA
+        │   ├── mapper/            # entity <-> domain
+        │   └── jpa/               # interfaces Spring Data (transporte)
+        └── forgejo/
+            ├── ForgejoCodeHostingAdapter.kt      # implementa CodeHostingPort
+            ├── client/            # ForgejoHttpClient + request/ + response/ + ForgejoException
+            └── config/            # RestClient e @ConfigurationProperties
 ```
 
 **Convenção de nomes de pacote: sempre no singular** (`controller`, `request`, `response`,
-`client`, `mapper`, `config`, `adapter`), seguindo o padrão Java/Kotlin.
+`client`, `mapper`, `config`), seguindo o padrão Java/Kotlin.
 
-**Padrão dos subpacotes de adapter:** dentro de cada sistema externo, separar por
-responsabilidade — `adapter` (orquestra e implementa o port), `client` (transporte),
-`config` (beans/properties), `mapper` (conversão pro domain). No inbound web:
-`controller`, `request`, `response`, `advice`, `support`. Uma classe por arquivo, sem god classes.
+**Regra dos pacotes de adapter outbound: a raiz do pacote é a porta implementada.**
+A classe que implementa o port fica solta na raiz de `persistence/`, `forgejo/`, etc.
+Os subpacotes são detalhe interno daquele adapter (`entity`, `mapper`, `jpa`, `client`,
+`config`). Não existe subpacote `adapter/` dentro de `adapter/` — o nome do pacote pai
+já diz que aquilo é um adaptador. `mapper/` só existe quando a conversão é não-trivial;
+mapeamento de um campo pode ficar inline no adapter.
+
+**Nomes de porta descrevem a capacidade, não a tecnologia.** `CodeHostingPort`, não
+`GitPort`/`ForgejoPort` — trocar de forge não deve renomear a porta. O sufixo distingue
+a direção: outbound termina em `...Port`, inbound em `...UseCase`.
+
+**Nada específico de adapter atravessa o hexágono.** Um adapter outbound traduz sua
+exceção de transporte (ex: `ForgejoException`) para a exceção declarada junto da porta
+(`CodeHostingException`) antes de deixá-la subir. Sem isso, o adapter inbound precisaria
+importar o adapter outbound para tratar o erro — acoplamento adapter→adapter.
+
+Uma classe por arquivo, sem god classes.
 
 ## Fluxo de uma request
 
 ```
 HTTP → XController (adapter.inbound.web.controller)
      → CreateXUseCase (application.port.inbound)
-     → CreateXService (application.usecase) — valida, orquestra
+     → CreateXUseCaseImpl (application.usecase) — valida, orquestra
      → XRepositoryPort (application.port.outbound)
-     → XRepositoryAdapter (adapter.outbound.persistence)
+     → XPersistenceAdapter (adapter.outbound.persistence)
      → Postgres
 ```
 
