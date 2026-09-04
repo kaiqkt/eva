@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
 import org.springframework.web.client.RestClient
-import java.util.Base64
 
 @Configuration
 class ForgejoConfig {
@@ -23,10 +22,7 @@ class ForgejoConfig {
         return RestClient.builder()
             .baseUrl(properties.baseUrl)
             .requestFactory(requestFactory)
-            .defaultHeader(
-                HttpHeaders.AUTHORIZATION,
-                "Basic ${Base64.getEncoder().encodeToString("${properties.user}:${properties.password}".toByteArray())}"
-            )
+            .defaultHeader(HttpHeaders.AUTHORIZATION, "token ${properties.token}")
             .build()
     }
 }

@@ -12,5 +12,11 @@ spring:
     hibernate:
       ddl-auto: validate
 
+forgejo:
+  base-url: ${FORGEJO_BASE_URL}
+  token: ${FORGEJO_TOKEN}
+  connect-timeout: ${FORGEJO_CONNECT_TIMEOUT:15s}
+  read-timeout: ${FORGEJO_READ_TIMEOUT:30s}
+
 server:
   port: 8080

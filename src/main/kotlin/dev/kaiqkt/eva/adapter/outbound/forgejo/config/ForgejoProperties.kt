@@ -6,8 +6,7 @@ import java.time.Duration
 @ConfigurationProperties(prefix = "forgejo")
 data class ForgejoProperties(
     val baseUrl: String,
-    val user: String,
-    val password: String,
+    val token: String,
     val connectTimeout: Duration,
     val readTimeout: Duration
 )

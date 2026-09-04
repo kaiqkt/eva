@@ -9,8 +9,8 @@ spring:
 
 forgejo:
   base-url: http://localhost:3000
-  user: eva
-  password: eva
+  # token herdado de application.yml (${FORGEJO_TOKEN}) — exporte no shell ou no .env,
+  # nunca literal aqui: este arquivo é versionado.
   connect-timeout: 15s
   read-timeout: 30s
 

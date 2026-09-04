@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface ProjectJpaRepository: JpaRepository<ProjectEntity, String> {
+interface ProjectJpaRepository : JpaRepository<ProjectEntity, String> {
     fun existsBySlug(slug: String): Boolean
     fun findBySlug(slug: String): ProjectEntity?
 }

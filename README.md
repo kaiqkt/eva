@@ -80,11 +80,14 @@ HTTP → XController (adapter.inbound.web.controller)
 ## Rodando local
 
 ```bash
-docker-compose up -d postgres        # compose v2 ausente em algumas máquinas — usar docker-compose (hífen)
+docker-compose up -d postgres forgejo   # compose v2 ausente em algumas máquinas — usar docker-compose (hífen)
+export FORGEJO_TOKEN=<token de API gerado no Forgejo>
 SPRING_PROFILES_ACTIVE=local ./gradlew bootRun
 ```
 
-Sem o profile `local`, o boot falha (`application.yml` usa `${DATABASE_URL}` sem default).
+O token nunca vai versionado. Gere em `http://localhost:3000/user/settings/applications`
+(escopo `write:repository`) e exporte no shell ou num `.env` local — `application-local.yml`
+só declara `base-url`, o token vem de `${FORGEJO_TOKEN}`.
 
 - Referência viva da API (Swagger UI, gerada do código): `http://localhost:8080/swagger-ui.html`
 - Spec OpenAPI (JSON): `http://localhost:8080/v3/api-docs`
