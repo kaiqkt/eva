@@ -12,14 +12,14 @@ import org.springframework.web.client.RestClient
 class ForgejoConfig {
     @Bean
     @Qualifier("forgejo-rest-client")
-    fun forgejoRestClient(properties: ForgejoProperties): RestClient {
+    fun forgejoRestClient(builder: RestClient.Builder, properties: ForgejoProperties): RestClient {
         val requestFactory = ClientHttpRequestFactoryBuilder.detect().build(
             ClientHttpRequestFactorySettings.defaults()
                 .withConnectTimeout(properties.connectTimeout)
                 .withReadTimeout(properties.readTimeout)
         )
 
-        return RestClient.builder()
+        return builder
             .baseUrl(properties.baseUrl)
             .requestFactory(requestFactory)
             .defaultHeader(HttpHeaders.AUTHORIZATION, "token ${properties.token}")
